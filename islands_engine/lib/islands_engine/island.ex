@@ -12,30 +12,33 @@ defmodule IslandsEngine.Island do
   defp offsets(_), do: {:error, :invalid_island_type}
 
   defp add_coordinate(
-    coordinates,
-    %Coordinate(row: upper_left_row, col: upper_left_col),
-    {row_offset, col_offset})
-    do
-      case Coordinate.new(upper_left_row + row_offset, upper_left_col + col_offset) do
-        {:ok, coordinate} ->
-          {:cont, MapSet.put(coordinates, coordinate)}
-        {:error, :invalid_coordinate} ->
-          {:halt, {:error, :invalid_coordinate}}
-      end
+         coordinates,
+         %Coordinate{row: upper_left_row, col: upper_left_col},
+         {row_offset, col_offset}
+       ) do
+    case Coordinate.new(upper_left_row + row_offset, upper_left_col + col_offset) do
+      {:ok, coordinate} ->
+        {:cont, MapSet.put(coordinates, coordinate)}
+
+      {:error, :invalid_coordinate} ->
+        {:halt, {:error, :invalid_coordinate}}
     end
   end
 
   defp add_coordinates(offsets, upper_left) do
-    Enum.reduce_while(offsets(type), MapSet.new(), fn {offset, map} ->
-      add_coordinate(acc, upper_left, offset))
+    Enum.reduce_while(offsets, MapSet.new(), fn offset, acc ->
+      add_coordinate(acc, upper_left, offset)
+    end)
   end
 
-  def new(type, %Coordinate(row: row, col: col)), do:
-
-    %Island{coordinates: MapSet.new(
-      Enum.map(offsets(type), fn {row_offset, col_offset} ->
-
-      Coordinate.new(row + row_offset, col + col_offset))
-
-    ), hit_coordinates: MapSet.new()}
+  def new(type, %Coordinate{row: row, col: col}),
+    do: %Island{
+      coordinates:
+        MapSet.new(
+          Enum.map(offsets(type), fn {row_offset, col_offset} ->
+            Coordinate.new(row + row_offset, col + col_offset)
+          end)
+        ),
+      hit_coordinates: MapSet.new()
+    }
 end
